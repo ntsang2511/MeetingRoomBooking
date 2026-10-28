@@ -1,0 +1,25 @@
+meta {
+  name: 25 Đăng nhập khi đang bị khoá (mong đợi 429)
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{lockEmail}}",
+    "password": "WrongPassword1"
+  }
+}
+
+tests {
+  test("429 sau 5 lần sai", function() {
+    expect(res.getStatus()).to.equal(429);
+    expect(res.getBody().detail).to.contain("Too many failed login attempts");
+  });
+}

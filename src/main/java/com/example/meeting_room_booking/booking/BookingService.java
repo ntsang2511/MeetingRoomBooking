@@ -20,6 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,7 @@ public class BookingService {
         if (!room.isActive()) {
             throw new ConflictException("Room is not active");
         }
+        validateAttendees(request.attendees(), room);
         User user = userRepository.findById(currentUser.id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
@@ -48,6 +52,7 @@ public class BookingService {
         booking.setRoom(room);
         booking.setUser(user);
         booking.setTitle(request.title().trim());
+        booking.setAttendees(request.attendees());
         booking.setStartTime(start);
         booking.setEndTime(end);
         // saveAndFlush: ràng buộc chống trùng lịch được kiểm tra ngay tại đây
@@ -78,6 +83,10 @@ public class BookingService {
             }
             booking.setTitle(request.title().trim());
         }
+
+        int attendees = request.attendees() != null ? request.attendees() : booking.getAttendees();
+        validateAttendees(attendees, booking.getRoom());
+        booking.setAttendees(attendees);
 
         Instant start = request.startTime() != null ? request.startTime().toInstant() : booking.getStartTime();
         Instant end = request.endTime() != null ? request.endTime().toInstant() : booking.getEndTime();
@@ -144,6 +153,13 @@ public class BookingService {
         }
     }
 
+    private void validateAttendees(int attendees, Room room) {
+        if (attendees > room.getCapacity()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "attendees (" + attendees + ") exceeds the room capacity (" + room.getCapacity() + ")");
+        }
+    }
+
     private void validateTimes(Instant start, Instant end) {
         if (!end.isAfter(start)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "endTime must be after startTime");
@@ -157,6 +173,24 @@ public class BookingService {
         if (minutes < min || minutes > max) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Booking duration must be between " + min + " and " + max + " minutes");
+        }
+
+        AppProperties.Booking rules = props.booking();
+        ZoneId zone = rules.zoneId();
+        ZonedDateTime localStart = start.atZone(zone);
+        ZonedDateTime localEnd = end.atZone(zone);
+        if (!localStart.toLocalDate().equals(localEnd.toLocalDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Bookings must start and end on the same day (" + rules.timezone() + ")");
+        }
+        if (localStart.toLocalTime().isBefore(rules.workStart()) || localEnd.toLocalTime().isAfter(rules.workEnd())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Bookings must be within working hours " + rules.workStart() + " - " + rules.workEnd()
+                            + " (" + rules.timezone() + ")");
+        }
+        if (start.isAfter(Instant.now().plus(rules.maxAdvanceDays(), ChronoUnit.DAYS))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Bookings can be made at most " + rules.maxAdvanceDays() + " days in advance");
         }
     }
 }

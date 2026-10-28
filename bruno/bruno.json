@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Meeting Room Booking API",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

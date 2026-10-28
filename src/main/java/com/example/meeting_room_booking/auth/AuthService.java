@@ -17,13 +17,24 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AppProperties props;
+    private final LoginAttemptService loginAttempts;
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, String clientIp) {
+        String key = LoginAttemptService.key(request.email(), clientIp);
+        if (loginAttempts.isBlocked(key)) {
+            long minutes = Math.max(1, loginAttempts.remainingLock(key).toMinutes());
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many failed login attempts. Try again in " + minutes + " minute(s)");
+        }
+
         User user = userRepository.findByEmailIgnoreCase(request.email())
                 .filter(User::isActive)
-                .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+                .orElse(null);
+        if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            loginAttempts.recordFailure(key);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        }
+        loginAttempts.reset(key);
 
         return new LoginResponse(
                 jwtService.generateToken(user),

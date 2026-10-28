@@ -1,0 +1,25 @@
+meta {
+  name: 16 Nhân viên đăng nhập bằng mật khẩu mới
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{employeeEmail}}",
+    "password": "NewSecret123"
+  }
+}
+
+tests {
+  test("200 và trả accessToken", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().accessToken).to.be.a("string");
+  });
+}

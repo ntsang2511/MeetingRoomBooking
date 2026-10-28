@@ -1,0 +1,35 @@
+meta {
+  name: 14 Trùng email khác hoa thường (mong đợi 409)
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/users
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "email": "{{employeeEmailUpper}}",
+    "password": "Secret12345",
+    "fullName": "Nhân viên trùng",
+    "role": "USER"
+  }
+}
+
+script:pre-request {
+  bru.setVar("employeeEmailUpper", bru.getVar("employeeEmail").toUpperCase());
+}
+
+tests {
+  test("409 vì email đã tồn tại", function() {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getBody().detail).to.contain("Email already in use");
+  });
+}

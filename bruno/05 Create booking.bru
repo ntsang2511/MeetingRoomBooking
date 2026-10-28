@@ -1,0 +1,46 @@
+meta {
+  name: 05 Đặt phòng (lưu bookingId)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/bookings
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "roomId": {{roomId}},
+    "title": "Họp Bruno",
+    "attendees": 4,
+    "startTime": "{{startTime}}",
+    "endTime": "{{endTime}}"
+  }
+}
+
+script:pre-request {
+  // Ngày mai theo giờ VN (UTC+7), không dùng Intl vì sandbox mặc định của Bruno không có.
+  const day = new Date(Date.now() + 7 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  bru.setVar("startTime", `${day}T09:00:00+07:00`);
+  bru.setVar("endTime", `${day}T10:00:00+07:00`);
+}
+
+script:post-response {
+  bru.setVar("bookingId", res.getBody().id);
+}
+
+tests {
+  test("201, có attendees và trạng thái CONFIRMED", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().attendees).to.equal(4);
+    expect(res.getBody().status).to.equal("CONFIRMED");
+  });
+}

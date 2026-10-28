@@ -1,0 +1,24 @@
+meta {
+  name: 18 Nhân viên đã khoá đăng nhập (mong đợi 401)
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{employeeEmail}}",
+    "password": "NewSecret123"
+  }
+}
+
+tests {
+  test("401", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

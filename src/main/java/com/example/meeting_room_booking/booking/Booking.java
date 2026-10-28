@@ -31,6 +31,9 @@ public class Booking {
     @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
+    private int attendees = 1;
+
     @Column(name = "start_time", nullable = false)
     private Instant startTime;
 

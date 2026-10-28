@@ -1,0 +1,28 @@
+meta {
+  name: 19 Admin tự khoá mình (mong đợi 409)
+  type: http
+  seq: 19
+}
+
+patch {
+  url: {{baseUrl}}/users/{{adminId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "active": false
+  }
+}
+
+tests {
+  test("409 và không cho tự khoá", function() {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getBody().detail).to.contain("own account");
+  });
+}

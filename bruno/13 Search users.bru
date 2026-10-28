@@ -1,0 +1,22 @@
+meta {
+  name: 13 Tìm người dùng
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/users?q={{employeeEmail}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("200 và tìm đúng nhân viên", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().content[0].email).to.equal(bru.getVar("employeeEmail"));
+  });
+}

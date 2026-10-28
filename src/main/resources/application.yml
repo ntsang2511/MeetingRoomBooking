@@ -25,8 +25,12 @@ app:
     email: ${ADMIN_EMAIL:admin@company.com}
     password: ${ADMIN_PASSWORD:Admin@12345}
   booking:
+    timezone: ${BOOKING_TIMEZONE:Asia/Ho_Chi_Minh}
+    work-start: "${BOOKING_WORK_START:08:00}"
+    work-end: "${BOOKING_WORK_END:18:00}"
     min-duration-minutes: 15
     max-duration-minutes: 480
+    max-advance-days: ${BOOKING_MAX_ADVANCE_DAYS:60}
 
 management:
   endpoints:

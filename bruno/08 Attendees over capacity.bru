@@ -1,0 +1,32 @@
+meta {
+  name: 08 Quá sức chứa phòng 6 chỗ (mong đợi 400)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/bookings
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "roomId": {{roomId}},
+    "title": "Họp quá sức chứa",
+    "attendees": 7,
+    "startTime": "{{startTime}}",
+    "endTime": "{{endTime}}"
+  }
+}
+
+tests {
+  test("400 và báo vượt sức chứa", function() {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getBody().detail).to.contain("capacity");
+  });
+}

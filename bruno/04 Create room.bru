@@ -1,0 +1,40 @@
+meta {
+  name: 04 Tạo phòng (lưu roomId)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/rooms
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "{{roomName}}",
+    "capacity": 6,
+    "location": "Tầng 3",
+    "description": "Phòng tạo từ Bruno"
+  }
+}
+
+script:pre-request {
+  bru.setVar("roomName", `Phòng Bruno ${Date.now()}`);
+}
+
+script:post-response {
+  bru.setVar("roomId", res.getBody().id);
+}
+
+tests {
+  test("201 và lưu roomId", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().id).to.be.a("number");
+    expect(res.getBody().capacity).to.equal(6);
+  });
+}

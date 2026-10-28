@@ -1,0 +1,33 @@
+meta {
+  name: 06 Tìm phòng trống (09:00-10:00 giờ VN)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/rooms/available?start={{rangeStart}}&end={{rangeEnd}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+script:pre-request {
+  // Ngày mai theo giờ VN (UTC+7), không dùng Intl vì sandbox mặc định của Bruno không có.
+  const day = new Date(Date.now() + 7 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  // 09:00-10:00 giờ VN = 02:00-03:00 UTC, dùng Z để không phải encode dấu +
+  bru.setVar("rangeStart", `${day}T02:00:00Z`);
+  bru.setVar("rangeEnd", `${day}T03:00:00Z`);
+}
+
+tests {
+  test("200, không chứa phòng vừa đặt", function() {
+    expect(res.getStatus()).to.equal(200);
+    const ids = res.getBody().content.map((room) => room.id);
+    expect(ids).to.not.include(Number(bru.getVar("roomId")));
+  });
+}

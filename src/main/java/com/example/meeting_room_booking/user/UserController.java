@@ -1,7 +1,12 @@
 package com.example.meeting_room_booking.user;
 
+import com.example.meeting_room_booking.common.CurrentUser;
+import com.example.meeting_room_booking.common.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,5 +34,29 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
         return userService.create(request);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<UserResponse> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) Boolean active,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return userService.list(q, role, active, pageable);
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
+                               @Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(id, CurrentUser.from(jwt), request);
+    }
+
+    @PostMapping("/{id}/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void resetPassword(@PathVariable Long id, @Valid @RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(id, request.password());
     }
 }

@@ -1,0 +1,28 @@
+meta {
+  name: 02 Me (lưu adminId)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/users/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+script:post-response {
+  bru.setVar("adminId", res.getBody().id);
+}
+
+tests {
+  test("200, role ADMIN, có active/createdAt", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().role).to.equal("ADMIN");
+    expect(res.getBody().active).to.equal(true);
+    expect(res.getBody().createdAt).to.be.a("string");
+  });
+}

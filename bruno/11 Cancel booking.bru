@@ -1,0 +1,22 @@
+meta {
+  name: 11 Huỷ booking
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/bookings/{{bookingId}}/cancel
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("200 và status CANCELLED", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("CANCELLED");
+  });
+}

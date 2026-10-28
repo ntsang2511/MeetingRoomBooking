@@ -1,0 +1,41 @@
+meta {
+  name: 07 Đặt trùng giờ (mong đợi 409)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/bookings
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "roomId": {{roomId}},
+    "title": "Họp trùng giờ",
+    "attendees": 4,
+    "startTime": "{{overlapStart}}",
+    "endTime": "{{overlapEnd}}"
+  }
+}
+
+script:pre-request {
+  // Ngày mai theo giờ VN (UTC+7), không dùng Intl vì sandbox mặc định của Bruno không có.
+  const day = new Date(Date.now() + 7 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  bru.setVar("overlapStart", `${day}T09:30:00+07:00`);
+  bru.setVar("overlapEnd", `${day}T10:30:00+07:00`);
+}
+
+tests {
+  test("409 và thông báo trùng lịch", function() {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getBody().detail).to.contain("already booked");
+  });
+}

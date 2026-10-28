@@ -1,0 +1,22 @@
+meta {
+  name: 03 Danh sách phòng
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("200 và trả trang kết quả", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().content).to.be.an("array");
+  });
+}

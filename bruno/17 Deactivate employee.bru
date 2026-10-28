@@ -1,0 +1,28 @@
+meta {
+  name: 17 Khoá tài khoản nhân viên
+  type: http
+  seq: 17
+}
+
+patch {
+  url: {{baseUrl}}/users/{{employeeId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "active": false
+  }
+}
+
+tests {
+  test("200 và active=false", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().active).to.equal(false);
+  });
+}

@@ -1,0 +1,23 @@
+meta {
+  name: 10 Booking của tôi
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/bookings/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("200 và có booking vừa tạo", function() {
+    expect(res.getStatus()).to.equal(200);
+    const ids = res.getBody().content.map((booking) => booking.id);
+    expect(ids).to.include(Number(bru.getVar("bookingId")));
+  });
+}

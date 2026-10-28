@@ -1,0 +1,40 @@
+meta {
+  name: 12 Tạo nhân viên (lưu employeeId)
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/users
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "email": "{{employeeEmail}}",
+    "password": "Secret12345",
+    "fullName": "Nhân viên Bruno",
+    "role": "USER"
+  }
+}
+
+script:pre-request {
+  bru.setVar("employeeEmail", `employee-${Date.now()}@example.com`);
+}
+
+script:post-response {
+  bru.setVar("employeeId", res.getBody().id);
+}
+
+tests {
+  test("201 và role USER", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().role).to.equal("USER");
+    expect(res.getBody().active).to.equal(true);
+  });
+}
